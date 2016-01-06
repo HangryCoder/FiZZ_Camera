@@ -1,6 +1,5 @@
 package camera.fizz5.com.cameramodule;
 
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -8,12 +7,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -64,7 +65,12 @@ public class MainActivity extends AppCompatActivity {
     private int currentYear, currentMonth, currentDay;
     public String dayG,monthG,yearG;
     TextView describe;
+    AlertDialog alert;
+    AlertDialog.Builder build;
+    Button newDate;
     String dateString="8-1-2016";
+    private SQLiteDatabase database;
+    private DBhelper cHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,10 +80,7 @@ public class MainActivity extends AppCompatActivity {
         describe = (TextView) findViewById(R.id.text_view_description);
         images = new ArrayList();
 
-        final Calendar c = Calendar.getInstance();
-        currentYear = c.get(Calendar.YEAR);
-        currentMonth = c.get(Calendar.MONTH);
-        currentDay = c.get(Calendar.DAY_OF_MONTH);
+        cHelper = new DBhelper(this);
 
         //display image
         // Check for SD Card
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         // Locate the ListView in activity_main.xml
         list = (ListView) findViewById(R.id.main_list_view);
         // Pass String arrays to ListAdapter Class
-        adapter = new ImageAdapter(this,images);
+        adapter = new ImageAdapter(this, images);
         // Set the ListAdapter to the ListView
         list.setAdapter(adapter);
         addItemClickListener(list);
@@ -123,12 +126,117 @@ public class MainActivity extends AppCompatActivity {
 
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            final int arg2, final long position) {
-                final MyImage image = (MyImage) list.getItemAtPosition((int)position);
-                AlertDialog.Builder build;
+                final MyImage image = (MyImage) list.getItemAtPosition((int) position);
+                final CharSequence[] listClick = {"Delete", "Set Reminder"};
 
                 build = new AlertDialog.Builder(MainActivity.this);
-                build.setMessage("Choose an Option");
-                build.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                build.setTitle("Choose an Option");
+                build.setItems(listClick, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        switch (item) {
+                            case 0: //Delete Option
+                                build = new AlertDialog.Builder(MainActivity.this);
+                                build.setTitle("Delete");
+                                build.setMessage("Do You Wish To Delete");
+                                build.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                                        Log.d("Delete Image: ", "Deleting.....");
+                                        daOdb.deleteImage(image);
+                                        daOdb.getImages();
+                                        File fdelete = new File(image.getPath());
+                                        if (fdelete.exists())
+
+                                        {
+                                            if (fdelete.delete()) {
+                                                System.out.println("File Deleted :" + image.getPath());
+                                            } else {
+                                                System.out.println("File Not Deleted :" + image.getPath());
+                                            }
+                                        }
+
+                                        adapter.remove(adapter.getItem((int) position));
+                                        list.invalidateViews();
+                                        dialog.cancel();
+                                    }
+                                });
+                                build.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                                alert = build.create();
+                                alert.show();
+                                break;
+                            case 1:
+                                LayoutInflater li = LayoutInflater.from(MainActivity.this);
+                                View DateView = li.inflate(R.layout.calendar_cam, null);
+                                build = new AlertDialog.Builder(MainActivity.this);
+                                build.setTitle("Reminder");
+                                build.setMessage("Pick a date");
+                                build.setView(DateView);
+                                newDate = (Button) DateView.findViewById(R.id.buttonCalCam);
+                                newDate.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        showDialog(DATE_DIALOG_ID);
+                                    }
+                                });
+
+                                final Calendar c = Calendar.getInstance();
+                                currentYear = c.get(Calendar.YEAR);
+                                currentMonth = c.get(Calendar.MONTH);
+                                currentDay = c.get(Calendar.DAY_OF_MONTH);
+
+                                build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                       /* try {
+                                            database.beginTransaction();
+                                            ContentValues cv = new ContentValues();
+                                            cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
+                                            //return database.insert(DBhelper.TABLE_NAME, null, cv);
+                                            Log.d("Updating Date: ", ".....");
+                                            String whereClause =
+                                                    DBhelper.COLUMN_TITLE + "=?";// AND " + DBhelper.COLUMN_DATETIME +"=?";
+                                            String[] whereArgs = new String[]{image.getTitle(), String.valueOf(image.getDatetimeLong())};
+                                            database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                                            //String query = "UPDATE " + DBhelper.TABLE_NAME + " SET " + DBhelper.COLUMN_DESCRIPTION + " = " + date + " WHERE " + DBhelper.COLUMN_TITLE + " = " + image.getTitle();
+
+                                            //database.execSQL(query);
+                                            database.setTransactionSuccessful();
+                                            //Toast.makeText(getBaseContext(), "Created file date", Toast.LENGTH_LONG).show();
+                                        } finally {
+                                            database.endTransaction();
+                                            //Toast.makeText(getBaseContext(), "Created file date", Toast.LENGTH_LONG).show();
+                                        }*/
+                                        //database=cHelper.getWritableDatabase();
+                                        //ContentValues cv = new ContentValues();
+                                        //cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
+                                        //return database.insert(DBhelper.TABLE_NAME, null, cv);
+                                        Log.d("Updating Date: ", ".....");
+                                        Toast.makeText(getApplication(),image.getTitle(),Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getApplication(),dateString,Toast.LENGTH_LONG).show();
+                                        image.setDescription(dateString);
+                                        list.invalidateViews();
+                                        //String query = "UPDATE " + DBhelper.TABLE_NAME + " SET " + DBhelper.COLUMN_DESCRIPTION + " = " + dateString + " WHERE " + DBhelper.COLUMN_TITLE + " = " + String.valueOf(image.getTitle());
+                                        //database.execSQL(query);
+                                        //daOdb.getImages();
+                                    }
+                                });
+                                alert=build.create();
+                                alert.show();
+                        }
+                    }
+                });
+                alert=build.create();
+                alert.show();
+                return true;
+            }
+        });
+    }
+
+                /*build.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         new AlertDialog.Builder(MainActivity.this)
                                 .setMessage("Do you wish to delete?")
@@ -184,9 +292,10 @@ public class MainActivity extends AppCompatActivity {
 
                 return true;
             }
+
         });
 
-    }
+    }*/
 
 
     /**
@@ -222,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
                 yearG = Integer.toString(year);
                 Log.d("Setting Date: ", ".....");
                 dateString=String.valueOf(dayG)+"-"+String.valueOf(monthG)+"-"+String.valueOf(yearG);
-                Toast.makeText(getBaseContext(), "Datestr "+dateString, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(), "Datestr "+dateString, Toast.LENGTH_SHORT).show();
                 //daOdb.updateDate(dateString);
                 //describe.setText(dateString);
                 Toast.makeText(getBaseContext(), "Your reminder is set to "  + day + "-" + (month + 1) + "-" + year + ".", Toast.LENGTH_SHORT).show();
