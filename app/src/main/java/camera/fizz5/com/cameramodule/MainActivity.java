@@ -3,6 +3,7 @@ package camera.fizz5.com.cameramodule;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     Button newDate;
     String dateString="8-1-2016";
     private SQLiteDatabase database;
-    private DBhelper cHelper;
+    private DBhelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
         // Construct the data source
         describe = (TextView) findViewById(R.id.text_view_description);
         images = new ArrayList();
-
-        cHelper = new DBhelper(this);
+        dbHelper = new DBhelper(this);
+        //cHelper = new DBhelper(this);
 
         //display image
         // Check for SD Card
@@ -170,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
                                 alert.show();
                                 break;
                             case 1:
+                                //Reminder
                                 LayoutInflater li = LayoutInflater.from(MainActivity.this);
                                 View DateView = li.inflate(R.layout.calendar_cam, null);
                                 build = new AlertDialog.Builder(MainActivity.this);
@@ -191,37 +193,17 @@ public class MainActivity extends AppCompatActivity {
 
                                 build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
-                                       /* try {
-                                            database.beginTransaction();
+                                            database=dbHelper.getWritableDatabase();
                                             ContentValues cv = new ContentValues();
                                             cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
-                                            //return database.insert(DBhelper.TABLE_NAME, null, cv);
                                             Log.d("Updating Date: ", ".....");
                                             String whereClause =
-                                                    DBhelper.COLUMN_TITLE + "=?";// AND " + DBhelper.COLUMN_DATETIME +"=?";
+                                                    DBhelper.COLUMN_TITLE + "=? AND " + DBhelper.COLUMN_DATETIME +"=?";
                                             String[] whereArgs = new String[]{image.getTitle(), String.valueOf(image.getDatetimeLong())};
                                             database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
-                                            //String query = "UPDATE " + DBhelper.TABLE_NAME + " SET " + DBhelper.COLUMN_DESCRIPTION + " = " + date + " WHERE " + DBhelper.COLUMN_TITLE + " = " + image.getTitle();
-
-                                            //database.execSQL(query);
-                                            database.setTransactionSuccessful();
-                                            //Toast.makeText(getBaseContext(), "Created file date", Toast.LENGTH_LONG).show();
-                                        } finally {
-                                            database.endTransaction();
-                                            //Toast.makeText(getBaseContext(), "Created file date", Toast.LENGTH_LONG).show();
-                                        }*/
-                                        //database=cHelper.getWritableDatabase();
-                                        //ContentValues cv = new ContentValues();
-                                        //cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
-                                        //return database.insert(DBhelper.TABLE_NAME, null, cv);
                                         Log.d("Updating Date: ", ".....");
-                                        Toast.makeText(getApplication(),image.getTitle(),Toast.LENGTH_LONG).show();
-                                        Toast.makeText(getApplication(),dateString,Toast.LENGTH_LONG).show();
                                         image.setDescription(dateString);
                                         list.invalidateViews();
-                                        //String query = "UPDATE " + DBhelper.TABLE_NAME + " SET " + DBhelper.COLUMN_DESCRIPTION + " = " + dateString + " WHERE " + DBhelper.COLUMN_TITLE + " = " + String.valueOf(image.getTitle());
-                                        //database.execSQL(query);
-                                        //daOdb.getImages();
                                     }
                                 });
                                 alert=build.create();
@@ -235,68 +217,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-                /*build.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        new AlertDialog.Builder(MainActivity.this)
-                                .setMessage("Do you wish to delete?")
-                                .setPositiveButton("YES",
-                                        new DialogInterface.OnClickListener() {
-                                            @TargetApi(11)
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "FiZZ");
-                                                Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
-                                                Log.d("Delete Image: ", "Deleting.....");
-                                                daOdb.deleteImage(image);
-                                                daOdb.getImages();
-                                                File fdelete = new File(image.getPath());
-                                                if (fdelete.exists()) {
-                                                    if (fdelete.delete()) {
-                                                        System.out.println("File Deleted :" + image.getPath());
-                                                    } else {
-                                                        System.out.println("File Not Deleted :" + image.getPath());
-                                                    }
-                                                }
-                                                adapter.remove(adapter.getItem((int) position));
-                                                list.invalidateViews();
-                                                dialog.cancel();
-                                            }
-                                        })
-                                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                                    @TargetApi(11)
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        dialog.cancel();
-                                    }
-                                }).show();
-                        dialog.cancel();
-
-                    }
-                });
-                build.setNegativeButton("Set Reminder", new DialogInterface.OnClickListener() {
-
-
-                    public void onClick(DialogInterface dialog, int which) {
-                        showDialog(DATE_DIALOG_ID);
-
-                        daOdb.updateDate(dateString,image);
-                        //dateString="12-5-2016 05:36";
-                        adapter.notifyDataSetChanged();
-                        list.invalidateViews();
-                        image.setDescription(dateString);
-
-                        dialog.cancel();
-                    }
-                });
-                AlertDialog alert = build.create();
-                alert.show();
-
-                return true;
-            }
-
-        });
-
-    }*/
-
 
     /**
      * initialize database

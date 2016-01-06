@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBhelper extends SQLiteOpenHelper {
-    public static final String DB_NAME = "sqliteimage.db";
+    public static final String DB_NAME = "sqliteimage";
     public static final int DB_VERSION = 1;
     public static final String COMMA_SEP = ",";
     public static final String TEXT_TYPE = " TEXT";

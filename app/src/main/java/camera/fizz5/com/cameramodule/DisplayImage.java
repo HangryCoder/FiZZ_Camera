@@ -12,11 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
-/**
- * Created by sony on 25/9/15.
- */
 public class DisplayImage extends Activity {
     private MyImage image;
     private ImageView imageView;
@@ -26,7 +22,6 @@ public class DisplayImage extends Activity {
     Button dateG, cal, save1;
     String dayG,monthG,yearG;
     public static String date;
-    //CalendarView Calendar;
     static final int DATE_DIALOG_ID = 0;
     private DAOdb daOdb;
     private int currentYear, currentMonth, currentDay;
@@ -52,11 +47,6 @@ public class DisplayImage extends Activity {
         imageView.setImageBitmap(ImageResizer
                 .decodeSampledBitmapFromFile(image.getPath(), width, height));
 
-         final Calendar c = Calendar.getInstance();
-        currentYear = c.get(Calendar.YEAR);
-        currentMonth = c.get(Calendar.MONTH);
-        currentDay = c.get(Calendar.DAY_OF_MONTH);
-        //initDB();
         daOdb = new DAOdb(this);
 
     }
