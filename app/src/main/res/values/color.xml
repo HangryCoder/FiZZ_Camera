@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="deepPurple1">#311B92</color>
+    <color name="deepPurple2">#512DA8</color>
+    <color name="deepPurple3">#673AB7</color>
+    <color name="deepPurple4">#9575CD</color>
+    <color name="deepPurple5">#D1C4E9</color>
+    <color name="black">#000</color>
+    <color name="white">#fff</color>
+    <item name="transparent" type="color">#00FFFFFF</item>
+    <item name="grey" type="color">#555215</item>
+    <item name="green" type="color">#44CC00</item>
+    <item name="blue" type="color">#a8e9ed</item>
+    <item name="red" type="color">#F00</item>
+    <item name="bluehighlight" type="color">#f4ac1c</item>
+    <color name="primaryColor">#8bc34a</color>
+    <color name="blackbutton">#808080</color>
+    <color name="primaryColorDark">#33691f</color>
+    <color name="accentColor">#50514f</color>
+</resources>
