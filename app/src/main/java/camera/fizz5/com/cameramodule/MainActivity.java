@@ -9,12 +9,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -72,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     String dateString="8-1-2016";
     private SQLiteDatabase database;
     private DBhelper dbHelper;
+    public File mediaFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
         describe = (TextView) findViewById(R.id.text_view_description);
         images = new ArrayList();
         dbHelper = new DBhelper(this);
-        //cHelper = new DBhelper(this);
 
         //display image
         // Check for SD Card
@@ -114,20 +117,162 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Locate the ListView in activity_main.xml
-        list = (ListView) findViewById(R.id.main_list_view);
+        // list = (ListView) findViewById(R.id.main_list_view);
+        final SwipeMenuListView swipelist=(SwipeMenuListView) findViewById(R.id.main_list_view);
         // Pass String arrays to ListAdapter Class
         adapter = new ImageAdapter(this, images);
         // Set the ListAdapter to the ListView
-        list.setAdapter(adapter);
-        addItemClickListener(list);
+        //list.setAdapter(adapter);
+        swipelist.setAdapter(adapter);
+        addItemClickListener(swipelist);
         initDB();
-        list.invalidateViews();
 
-        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        // step 1. create a MenuCreator
+        SwipeMenuCreator creator = new SwipeMenuCreator() {
+
+            @Override
+            public void create(SwipeMenu menu) {
+                // Create different menus depending on the view type
+                /*SwipeMenuItem item1 = new SwipeMenuItem(
+                        getApplicationContext());
+                item1.setBackground(new ColorDrawable(Color.rgb(0xE5, 0xE0,
+                        0x3F)));
+                item1.setWidth(dp2px(90));
+                item1.setIcon(R.drawable.ic_action_important);
+                menu.addMenuItem(item1);*/
+                SwipeMenuItem item2 = new SwipeMenuItem(
+                        getApplicationContext());
+                item2.setBackground(new ColorDrawable(Color.rgb(0xF9,
+                        0x3F, 0x25)));
+                item2.setWidth(dp2px(90));
+                item2.setIcon(R.drawable.ic_action_discard);
+                menu.addMenuItem(item2);
+            }
+
+
+            private void createMenu1(SwipeMenu menu) {
+                SwipeMenuItem item1 = new SwipeMenuItem(
+                        getApplicationContext());
+                item1.setBackground(new ColorDrawable(Color.rgb(0xE5, 0x18,
+                        0x5E)));
+                item1.setWidth(dp2px(90));
+                item1.setIcon(R.drawable.ic_action_favorite);
+                menu.addMenuItem(item1);
+                SwipeMenuItem item2 = new SwipeMenuItem(
+                        getApplicationContext());
+                item2.setBackground(new ColorDrawable(Color.rgb(0xC9, 0xC9,
+                        0xCE)));
+                item2.setWidth(dp2px(90));
+                item2.setIcon(R.drawable.ic_action_good);
+                menu.addMenuItem(item2);
+            }
+
+            private void createMenu2(SwipeMenu menu) {
+                SwipeMenuItem item1 = new SwipeMenuItem(
+                        getApplicationContext());
+                item1.setBackground(new ColorDrawable(Color.rgb(0xE5, 0xE0,
+                        0x3F)));
+                item1.setWidth(dp2px(90));
+                item1.setIcon(R.drawable.ic_action_important);
+                menu.addMenuItem(item1);
+                SwipeMenuItem item2 = new SwipeMenuItem(
+                        getApplicationContext());
+                item2.setBackground(new ColorDrawable(Color.rgb(0xF9,
+                        0x3F, 0x25)));
+                item2.setWidth(dp2px(90));
+                item2.setIcon(R.drawable.ic_action_discard);
+                menu.addMenuItem(item2);
+            }
+
+            private void createMenu3(SwipeMenu menu) {
+                SwipeMenuItem item1 = new SwipeMenuItem(
+                        getApplicationContext());
+                item1.setBackground(new ColorDrawable(Color.rgb(0x30, 0xB1,
+                        0xF5)));
+                item1.setWidth(dp2px(90));
+                item1.setIcon(R.drawable.ic_action_about);
+                menu.addMenuItem(item1);
+                SwipeMenuItem item2 = new SwipeMenuItem(
+                        getApplicationContext());
+                item2.setBackground(new ColorDrawable(Color.rgb(0xC9, 0xC9,
+                        0xCE)));
+                item2.setWidth(dp2px(90));
+                item2.setIcon(R.drawable.ic_action_share);
+                menu.addMenuItem(item2);
+            }
+        };
+
+        // set creator
+        swipelist.setMenuCreator(creator);
+
+        // step 2. listener item click event
+        swipelist.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
+                // ApplicationInfo item = mAppList.get(position);
+                //switch (index) {
+                   // case 0:
+                        // open
+                     //   break;
+                   // case 1:
+                        // delete
+//					delete(item);
+                        //build = new AlertDialog.Builder(MainActivity.this);
+                        //build.setTitle("Choose an Option");
+                        final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+                        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (which){
+                                    case DialogInterface.BUTTON_POSITIVE:
+                                        //Yes button clicked
+                                        Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                                        Log.d("Delete Image: ", "Deleting.....");
+                                        daOdb.deleteImage(image);
+                                        daOdb.getImages();
+                                        File fdelete = new File(image.getPath());
+                                        if (fdelete.exists())
+
+                                        {
+                                            if (fdelete.delete()) {
+                                                System.out.println("File Deleted :" + image.getPath());
+                                            } else {
+                                                System.out.println("File Not Deleted :" + image.getPath());
+                                            }
+                                        }
+
+                                        adapter.remove(adapter.getItem((int) position));
+                                        swipelist.invalidateViews();
+                                        dialog.cancel();
+                                        break;
+
+                                    case DialogInterface.BUTTON_NEGATIVE:
+                                        //No button clicked
+                                        dialog.cancel();
+                                        break;
+                                }
+                            }
+                        };
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setMessage("Do You Wish To Delete?").setPositiveButton("Yes", dialogClickListener)
+                                .setNegativeButton("No", dialogClickListener).show();
+                        //mAppList.remove(position);
+                        //adapter.notifyDataSetChanged();
+                       // break;
+                //}
+                return false;
+            }
+        });
+
+
+        swipelist.invalidateViews();
+
+        swipelist.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            final int arg2, final long position) {
-                final MyImage image = (MyImage) list.getItemAtPosition((int) position);
+                final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
                 final CharSequence[] listClick = {"Delete", "Set Reminder"};
 
                 build = new AlertDialog.Builder(MainActivity.this);
@@ -157,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
                                         }
 
                                         adapter.remove(adapter.getItem((int) position));
-                                        list.invalidateViews();
+                                        swipelist.invalidateViews();
                                         dialog.cancel();
                                     }
                                 });
@@ -178,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                                 build.setTitle("Reminder");
                                 build.setMessage("Pick a date");
                                 build.setView(DateView);
-                                newDate = (Button) DateView.findViewById(R.id.buttonCalCam);
+                                newDate = (Button) DateView.findViewById(R.id.buttonCalCam); //Button which opens the calender
                                 newDate.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -193,17 +338,17 @@ public class MainActivity extends AppCompatActivity {
 
                                 build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
-                                            database=dbHelper.getWritableDatabase();
-                                            ContentValues cv = new ContentValues();
-                                            cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
-                                            Log.d("Updating Date: ", ".....");
-                                            String whereClause =
-                                                    DBhelper.COLUMN_TITLE + "=? AND " + DBhelper.COLUMN_DATETIME +"=?";
-                                            String[] whereArgs = new String[]{image.getTitle(), String.valueOf(image.getDatetimeLong())};
-                                            database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                                        database=dbHelper.getWritableDatabase();
+                                        ContentValues cv = new ContentValues();
+                                        cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
+                                        Log.d("Updating Date: ", ".....");
+                                        String whereClause =
+                                                DBhelper.COLUMN_TITLE + "=? AND " + DBhelper.COLUMN_DATETIME +"=?";
+                                        String[] whereArgs = new String[]{image.getTitle(), String.valueOf(image.getDatetimeLong())};
+                                        database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                                         Log.d("Updating Date: ", ".....");
                                         image.setDescription(dateString);
-                                        list.invalidateViews();
+                                        swipelist.invalidateViews();
                                     }
                                 });
                                 alert=build.create();
@@ -251,9 +396,6 @@ public class MainActivity extends AppCompatActivity {
                 yearG = Integer.toString(year);
                 Log.d("Setting Date: ", ".....");
                 dateString=String.valueOf(dayG)+"-"+String.valueOf(monthG)+"-"+String.valueOf(yearG);
-                //Toast.makeText(getBaseContext(), "Datestr "+dateString, Toast.LENGTH_SHORT).show();
-                //daOdb.updateDate(dateString);
-                //describe.setText(dateString);
                 Toast.makeText(getBaseContext(), "Your reminder is set to "  + day + "-" + (month + 1) + "-" + year + ".", Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(getBaseContext(), "Please choose date after " + curDay + "-" + curMonth + "-" + curYear, Toast.LENGTH_SHORT).show();
@@ -321,6 +463,7 @@ public class MainActivity extends AppCompatActivity {
         // TODO Auto-generated method stub
 
         if(isExternalStorageWritable()) {
+            Toast.makeText(getBaseContext(), "value: "+ Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE)), Toast.LENGTH_LONG).show();
             return Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE));
         }
         else
@@ -353,9 +496,11 @@ public class MainActivity extends AppCompatActivity {
         }
         // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
+
         int MEDIA_TYPE_IMAGE = 1;
         if (type == MEDIA_TYPE_IMAGE){
+            //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+             String fname= "IMG_"+ timeStamp + ".jpg";
             mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
         } else {
             return null;
@@ -453,12 +598,17 @@ public class MainActivity extends AppCompatActivity {
                     final Dialog dialog = new Dialog(this);
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                     String fname = "IMG_"+ timeStamp + ".jpg";
+                    File mediaFile1;
+
+
                     //Selected Image Uri
                     Uri selectedImageUri = data.getData();
                     selectedImagePath = getPath(selectedImageUri);
                     Toast.makeText(getApplication(),selectedImagePath,Toast.LENGTH_SHORT).show();
                     File mediaStored = new File(getPath(selectedImageUri));//Source file
                     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "FiZZ");
+                    mediaFile1 = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
+                    String imageName=String.valueOf(mediaFile1);
                     // This location works best if you want the created images to be shared
                     // between applications and persist after your app has been uninstalled.
                     // Create the storage directory if it does not exist
@@ -479,13 +629,14 @@ public class MainActivity extends AppCompatActivity {
                                 String picturePath = cursor.getString(columnIndex);
                                 cursor.close();
                                 MyImage image = new MyImage();
-                                image.setTitle(fname);
+                                image.setTitle(imageName);
                                 image.setDescription(picturePath);
                                 image.setDatetime(System.currentTimeMillis());
                                 image.setPath(picturePath);
                                 images.add(image);
                                 daOdb.addImage(image);
-                                list.invalidateViews();
+                                //swipelist.invalidateViews();
+                                adapter.notifyDataSetChanged();
                             }catch (IOException e){
                                 e.printStackTrace();
                             }finally {
@@ -507,14 +658,14 @@ public class MainActivity extends AppCompatActivity {
                             }
                             cursor.close();
                             MyImage image = new MyImage();
-                            image.setTitle(fname);
+                            image.setTitle(imageName);
                             image.setDescription(" ");
                             image.setDatetime(System.currentTimeMillis());
                             image.setPath(picturePath);
                             images.add(image);
                             daOdb.addImage(image);
-                            //adapter.notifyDataSetChanged();
-                            list.invalidateViews();
+                            adapter.notifyDataSetChanged();
+                            //swipelist.invalidateViews();
                         }catch (IOException e){
                             e.printStackTrace();
                         }
@@ -524,6 +675,7 @@ public class MainActivity extends AppCompatActivity {
                 if (requestCode == REQUEST_IMAGE_CAPTURE &&
                         resultCode == RESULT_OK) {
                     String filePath=imageFile.getAbsolutePath();
+                    String imageName=String.valueOf(mediaFile);
                     Cursor cursor =
                             getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                                     new String[]{MediaStore.Images.Media._ID},
@@ -536,7 +688,7 @@ public class MainActivity extends AppCompatActivity {
                                 MediaStore.MediaColumns._ID);
                         String picturePath = cursor.getString(column_index_data);
                         MyImage image = new MyImage();
-                        image.setTitle(fname);
+                        image.setTitle(imageName);
                         image.setDescription(" ");
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(picturePath);
@@ -547,14 +699,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else{
                         MyImage image = new MyImage();
-                        image.setTitle(fname);
+                        image.setTitle(imageName);
                         image.setDescription(" ");
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(fileUri.getPath());
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();
-                        list.invalidateViews();
+                        //swipelist.invalidateViews();
                     }
                 }
         }
@@ -568,12 +720,19 @@ public class MainActivity extends AppCompatActivity {
      */
     private void addItemClickListener(final ListView list) {
         list.setOnItemClickListener(new OnItemClickListener() {
-            @Override public void onItemClick(AdapterView<?> parent, View view,
-                                              int position, long id) {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
                 MyImage image = (MyImage) list.getItemAtPosition(position);
-                Intent intent =
+                /*Intent intent =
                         new Intent(getBaseContext(), DisplayImage.class);
                 intent.putExtra("IMAGE", (new Gson()).toJson(image));
+                startActivity(intent);*/
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.putExtra("IMAGE", (new Gson()).toJson(image));
+                intent.setDataAndType(Uri.parse("file://"  + image.getTitle()), "image/*");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
             }
         });
@@ -596,5 +755,9 @@ public class MainActivity extends AppCompatActivity {
             mCapturedImageURI = Uri.parse(
                     savedInstanceState.getString("mCapturedImageURI"));
         }
+    }
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                getResources().getDisplayMetrics());
     }
 }

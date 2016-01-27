@@ -36,6 +36,7 @@ public class ImageAdapter extends ArrayAdapter<MyImage> {
         super(context, 0, images);
 
     }
+
     @Override public View getView(int position, View convertView,
                                   ViewGroup parent) {
         // view lookup cache stored in tag
@@ -68,4 +69,5 @@ public class ImageAdapter extends ArrayAdapter<MyImage> {
         // Return the completed view to render on screen
         return convertView;
     }
+
 }

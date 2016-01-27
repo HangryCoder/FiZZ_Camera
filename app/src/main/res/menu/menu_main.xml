@@ -3,4 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_left" android:orderInCategory="100" android:title="Left" app:showAsAction="never"/>
+    <item android:id="@+id/action_right" android:orderInCategory="100" android:title="Right" app:showAsAction="never"/>
 </menu>
