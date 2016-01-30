@@ -133,13 +133,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void create(SwipeMenu menu) {
                 // Create different menus depending on the view type
-                /*SwipeMenuItem item1 = new SwipeMenuItem(
+                SwipeMenuItem item1 = new SwipeMenuItem(
                         getApplicationContext());
-                item1.setBackground(new ColorDrawable(Color.rgb(0xE5, 0xE0,
-                        0x3F)));
+                item1.setBackground(new ColorDrawable(Color.rgb(0x30, 0xB1,
+                        0xF5)));
                 item1.setWidth(dp2px(90));
-                item1.setIcon(R.drawable.ic_action_important);
-                menu.addMenuItem(item1);*/
+                item1.setIcon(R.drawable.reminder);
+                menu.addMenuItem(item1);
                 SwipeMenuItem item2 = new SwipeMenuItem(
                         getApplicationContext());
                 item2.setBackground(new ColorDrawable(Color.rgb(0xF9,
@@ -210,16 +210,53 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
                 // ApplicationInfo item = mAppList.get(position);
-                //switch (index) {
-                   // case 0:
+                final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+                switch (index) {
+                    case 0:
                         // open
-                     //   break;
-                   // case 1:
+
+                        LayoutInflater li = LayoutInflater.from(MainActivity.this);
+                        View DateView = li.inflate(R.layout.calendar_cam, null);
+                        build = new AlertDialog.Builder(MainActivity.this);
+                        build.setTitle("Reminder");
+                        build.setMessage("Pick a date");
+                        build.setView(DateView);
+                        newDate = (Button) DateView.findViewById(R.id.buttonCalCam); //Button which opens the calender
+                        newDate.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                showDialog(DATE_DIALOG_ID);
+                            }
+                        });
+
+                        final Calendar c = Calendar.getInstance();
+                        currentYear = c.get(Calendar.YEAR);
+                        currentMonth = c.get(Calendar.MONTH);
+                        currentDay = c.get(Calendar.DAY_OF_MONTH);
+                        build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                database=dbHelper.getWritableDatabase();
+                                ContentValues cv = new ContentValues();
+                                cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
+                                Log.d("Updating Date: ", ".....");
+                                String whereClause =
+                                        DBhelper.COLUMN_TITLE + "=? AND " + DBhelper.COLUMN_DATETIME +"=?";
+                                String[] whereArgs = new String[]{image.getTitle(), String.valueOf(image.getDatetimeLong())};
+                                database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                                Log.d("Updating Date: ", ".....");
+                                image.setDescription(dateString);
+                                swipelist.invalidateViews();
+                            }
+                        });
+                        alert=build.create();
+                        alert.show();
+                        break;
+                    case 1:
                         // delete
 //					delete(item);
                         //build = new AlertDialog.Builder(MainActivity.this);
                         //build.setTitle("Choose an Option");
-                        final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+
                         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -228,20 +265,22 @@ public class MainActivity extends AppCompatActivity {
                                         //Yes button clicked
                                         Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
                                         Log.d("Delete Image: ", "Deleting.....");
-                                        daOdb.deleteImage(image);
-                                        daOdb.getImages();
-                                        File fdelete = new File(image.getPath());
+                                        adapter.remove(adapter.getItem((int) position));
+                                        swipelist.invalidateViews();
+                                        File fdelete = new File(image.getTitle());
                                         if (fdelete.exists())
 
                                         {
                                             if (fdelete.delete()) {
+                                                daOdb.deleteImage(image);
+                                                daOdb.getImages();
                                                 System.out.println("File Deleted :" + image.getPath());
                                             } else {
+                                                daOdb.deleteImage(image);
+                                                daOdb.getImages();
                                                 System.out.println("File Not Deleted :" + image.getPath());
                                             }
                                         }
-
-                                        adapter.remove(adapter.getItem((int) position));
                                         swipelist.invalidateViews();
                                         dialog.cancel();
                                         break;
@@ -259,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
                                 .setNegativeButton("No", dialogClickListener).show();
                         //mAppList.remove(position);
                         //adapter.notifyDataSetChanged();
-                       // break;
-                //}
+                        break;
+                }
                 return false;
             }
         });
@@ -268,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
         swipelist.invalidateViews();
 
-        swipelist.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+       /* swipelist.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            final int arg2, final long position) {
@@ -360,7 +399,7 @@ public class MainActivity extends AppCompatActivity {
                 alert.show();
                 return true;
             }
-        });
+        });*/
     }
 
     /**
