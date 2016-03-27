@@ -8,7 +8,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,35 +36,13 @@ public class DAOdb {
         cv.put(DBhelper.COLUMN_PATH, image.getPath());
         cv.put(DBhelper.COLUMN_TITLE, image.getTitle());
         cv.put(DBhelper.COLUMN_DESCRIPTION, image.getDescription());
+        cv.put(DBhelper.COLUMN_NAME,image.getName());
         cv.put(DBhelper.COLUMN_DATETIME, System.currentTimeMillis());
         return database.insert(DBhelper.TABLE_NAME, null, cv);
     }
 
 
-    public void updateDate(String date, MyImage image)
-    {
-        try {
-            database.beginTransaction();
-        ContentValues cv = new ContentValues();
-        cv.put(DBhelper.COLUMN_DESCRIPTION, date);
-            //return database.insert(DBhelper.TABLE_NAME, null, cv);
-            Log.d("Updating Date: ", ".....");
-            String whereClause =
-                    DBhelper.COLUMN_TITLE + "=? AND " + DBhelper.COLUMN_DATETIME +
-                            "=?";
-            String[] whereArgs = new String[]{image.getTitle(),
-                    String.valueOf(image.getDatetimeLong())};
-            database.update(DBhelper.TABLE_NAME, cv,whereClause, whereArgs);
-            //String query = "UPDATE " + DBhelper.TABLE_NAME + " SET " + DBhelper.COLUMN_DESCRIPTION + " = " + date + " WHERE " + DBhelper.COLUMN_TITLE + " = " + image.getTitle();
 
-            //database.execSQL(query);
-            database.setTransactionSuccessful();
-            //Toast.makeText(getBaseContext(), "Created file date", Toast.LENGTH_LONG).show();
-        }
-        finally {
-            database.endTransaction();
-        }
-    }
     /**
      * delete the given image from database
      *
@@ -113,6 +90,8 @@ public class DAOdb {
                 cursor.getColumnIndex(DBhelper.COLUMN_DATETIME)));
         image.setDescription(cursor.getString(
                 cursor.getColumnIndex(DBhelper.COLUMN_DESCRIPTION)));
+        image.setName(
+                cursor.getString(cursor.getColumnIndex(DBhelper.COLUMN_NAME)));
         return image;
     }
 }

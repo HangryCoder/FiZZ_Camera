@@ -7,6 +7,7 @@
         android:layout_height="wrap_content"
         android:text="New Date"
         android:id="@+id/buttonCalCam"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:onClick="onDateSelectedButtonClick"
+        android:layout_marginTop="35dp" />
 </RelativeLayout>

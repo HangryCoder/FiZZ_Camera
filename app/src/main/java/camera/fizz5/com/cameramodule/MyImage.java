@@ -5,17 +5,21 @@ package camera.fizz5.com.cameramodule;
  */
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MyImage {
-    private String title, description, path;
+    private String title, description, path,id,name;
+    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
     private long datetimeLong;
     private SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy hh:mm");
-    public MyImage(String title, String description, String path,
+    public MyImage(String title, String description,String name, String path,
                    long datetimeLong) {
         this.title = title;
         this.description = description;
+        this.name=name;
         this.path = path;
         this.datetimeLong = datetimeLong;
+        this.id = df.format(getDatetime().getTime());
     }
     public MyImage() {
     }
@@ -25,6 +29,8 @@ public class MyImage {
      * @return Value of title.
      */
     public String getTitle() { return title; }
+
+    public String getName() { return name; }
     /**
      * Gets datetime.
      *
@@ -63,6 +69,8 @@ public class MyImage {
      * @param title New value of title.
      */
     public void setTitle(String title) { this.title = title; }
+
+    public void setName( String name ) { this.name = name; }
     /**
      * Gets datetimeLong.
      *
@@ -90,8 +98,8 @@ public class MyImage {
      */
     public String getPath() { return path; }
     @Override public String toString() {
-        return "Title:" + title + "   " + df.format(getDatetime().getTime()) +
-                "\nDescription:" + description;
+        return "IMG_" + timeStamp + ".jpg\n " + df.format(getDatetime().getTime()) +
+                "\nReminder: " + description +"\nDescription: "+name;
     }
 
 }
