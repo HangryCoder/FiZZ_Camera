@@ -329,19 +329,21 @@ public class MainActivity extends AppCompatActivity {
         //Intent i;
         //i.putExtra("Swipe",String.valueOf(findViewById(R.id.main_list_view)));
 
-      /*  delGoalId = getIntent().getIntExtra("ID", 0);
+        Intent in=getIntent();
 
-      *//*  if(delGoalId == 0){
-            delGoalId = getIntent().getExtras().getInt("ID");*//*
+       // delGoalId = getIntent().getIntExtra("ID", 0);
+
+        if(in != null){
+            delGoalId = in.getIntExtra("ID",0);
             //catNotify = String.valueOf(getIntent().getExtras().getInt("Category"));
-            if(Integer.valueOf(delGoalId) >=0) {
+            if(delGoalId >0) {
 
-                onReceive(Integer.valueOf(delGoalId));
-            }*/
-      /*  }else if(delGoalId != 0 ) {
+                onReceive(delGoalId-1);
+            }
+        }else {
 
-            onReceive(Integer.valueOf(delGoalId));
-        }*/
+            onReceive(delGoalId-1);
+        }
     }
 
 
@@ -470,8 +472,6 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
 
         am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60 * 1000, pendingIntent);
-
-        Toast.makeText(getApplicationContext(), "Alarm Created", Toast.LENGTH_LONG).show();
 
         super.onResume();
     }
@@ -731,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
                                 image.setDescription(picturePath);
                                 image.setDatetime(System.currentTimeMillis());
                                 image.setPath(picturePath);
-                                image.setName("");
+                                image.setName(null);
                                 images.add(image);
                                 daOdb.addImage(image);
                                 //swipelist.invalidateViews();
@@ -761,7 +761,7 @@ public class MainActivity extends AppCompatActivity {
                             image.setDescription(" ");
                             image.setDatetime(System.currentTimeMillis());
                             image.setPath(picturePath);
-                            image.setName("");
+                            image.setName(null);
                             images.add(image);
                             daOdb.addImage(image);
                             adapter.notifyDataSetChanged();
@@ -792,7 +792,7 @@ public class MainActivity extends AppCompatActivity {
                         image.setDescription(" ");
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(picturePath);
-                        image.setName("");
+                        image.setName(null);
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();
@@ -804,7 +804,7 @@ public class MainActivity extends AppCompatActivity {
                         image.setDescription(" ");
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(fileUri.getPath());
-                        image.setName("");
+                        image.setName(null);
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();

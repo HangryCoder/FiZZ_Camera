@@ -97,9 +97,17 @@ public class MyImage {
      * @return Value of path.
      */
     public String getPath() { return path; }
-    @Override public String toString() {
-        return "IMG_" + timeStamp + ".jpg\n " + df.format(getDatetime().getTime()) +
-                "\nReminder: " + description +"\nDescription: "+name;
+
+    @Override
+    public String toString() {
+        if (name == null /*|| name=="IMG_"+ timeStamp + ".jpg"*/ ) {
+            return "Name: IMG_" + timeStamp + ".jpg\n" + df.format(getDatetime().getTime()) +
+                    "\nReminder: " + description;
+        }
+        else{
+            return  "Name: " + name + "\n" + df.format(getDatetime().getTime()) +
+                    "\nReminder: " + description ;
+        }
     }
 
 }
