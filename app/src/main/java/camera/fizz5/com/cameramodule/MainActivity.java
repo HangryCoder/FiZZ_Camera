@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
     private DatePicker picker;
     public int NotiId=0;
     BroadcastReceiver receiver;
-    public int delGoalId;
+    public int delGoalId,delGoalId1;
     Button EditButton;
     TextView textEdit;
     EditText DescEdit;
@@ -165,6 +165,14 @@ public class MainActivity extends AppCompatActivity {
                 item2.setWidth(dp2px(90));
                 item2.setIcon(R.drawable.ic_action_discard);
                 menu.addMenuItem(item2);
+                SwipeMenuItem item3 = new SwipeMenuItem(
+                        getApplicationContext());
+                item3.setBackground(new ColorDrawable(Color.rgb(0xE5, 0xE0,
+                        0x3F)));
+                item3.setWidth(dp2px(90));
+                item3.setIcon(R.drawable.ic_action_important);
+                menu.addMenuItem(item3);
+
             }
 
         };
@@ -223,10 +231,10 @@ public class MainActivity extends AppCompatActivity {
                         });
                         build.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel();
+                                dialog.cancel();
                             }
                         });
-                                alert = build.create();
+                        alert = build.create();
                         alert.show();
                         break;
                     case 1:
@@ -272,7 +280,38 @@ public class MainActivity extends AppCompatActivity {
                                 .setNegativeButton("No", dialogClickListener).show();
 
                         break;
+                    case 2:
+                        if(image.getPriority()=="OFF"){
+                            database = dbHelper.getWritableDatabase();
+                            ContentValues cv = new ContentValues();
+                            cv.put(DBhelper.COLUMN_PRIORITY, "ON");
+                            Log.d("Updating Priority: ", ".....");
+                            String whereClause =
+                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                            database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                            Log.d("Updating Priority: ", ".....");
+                        image.setPriority("ON");
+                        Toast.makeText(getApplicationContext(), image + " " + " is marked Important.", Toast.LENGTH_SHORT).show();
+                            swipelist.invalidateViews();
+                        }
+                        else{
+                            database = dbHelper.getWritableDatabase();
+                            ContentValues cv = new ContentValues();
+                            cv.put(DBhelper.COLUMN_PRIORITY, "OFF");
+                            Log.d("Updating Priority: ", ".....");
+                            String whereClause =
+                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                            database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                            Log.d("Updating Priority: ", ".....");
+                            image.setPriority("OFF");
+                            Toast.makeText(getApplicationContext(), image + " " + " is marked UnImportant.", Toast.LENGTH_SHORT).show();
+                            swipelist.invalidateViews();
+                        }
+                        break;
                 }
+
                 return false;
             }
         });
@@ -331,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent in=getIntent();
 
-       // delGoalId = getIntent().getIntExtra("ID", 0);
+        // delGoalId = getIntent().getIntExtra("ID", 0);
 
         if(in != null){
             delGoalId = in.getIntExtra("ID",0);
@@ -343,6 +382,63 @@ public class MainActivity extends AppCompatActivity {
         }else {
 
             onReceive(delGoalId-1);
+        }
+        Intent in1=getIntent();
+        // delGoalId = getIntent().getIntExtra("ID", 0);
+        if(in1 != null){
+            delGoalId1 = in1.getIntExtra("DEL",0);
+            //catNotify = String.valueOf(getIntent().getExtras().getInt("Category"));
+            if(delGoalId1 >0) {
+                onRec(delGoalId1-1);
+            }
+        }else {
+            onRec(delGoalId1-1);
+        }
+
+    }
+    public void onRec(final int position) {
+        final SwipeMenuListView swipelist = (SwipeMenuListView) findViewById(R.id.main_list_view);
+        Toast.makeText(getApplicationContext(), "onReceive", Toast.LENGTH_LONG).show();
+        final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+        String action = getIntent().getAction();
+        if ("Del".equals(action)) {// to execute delete option
+            // delete
+            DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    switch (which) {
+                        case DialogInterface.BUTTON_POSITIVE:
+                            //Yes button clicked
+                            Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                            Log.d("Delete Image: ", "Deleting.....");
+                            adapter.remove(adapter.getItem((int) position));
+                            swipelist.invalidateViews();
+                            File fdelete = new File(image.getTitle());
+                            if (fdelete.exists())
+                            {
+                                if (fdelete.delete()) {
+                                    daOdb.deleteImage(image);
+                                    daOdb.getImages();
+                                    System.out.println("File Deleted :" + image.getPath());
+                                } else {
+                                    daOdb.deleteImage(image);
+                                    daOdb.getImages();
+                                    System.out.println("File Not Deleted :" + image.getPath());
+                                }
+                            }
+                            swipelist.invalidateViews();
+                            dialog.cancel();
+                            break;
+                        case DialogInterface.BUTTON_NEGATIVE:
+                            //No button clicked
+                            dialog.cancel();
+                            break;
+                    }
+                }
+            };
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("Do You Wish To Delete?").setPositiveButton("Yes", dialogClickListener)
+                    .setNegativeButton("No", dialogClickListener).show();
         }
     }
 
@@ -372,10 +468,11 @@ public class MainActivity extends AppCompatActivity {
                                 if (fdelete.delete()) {
                                     daOdb.deleteImage(image);
                                     daOdb.getImages();
-                                    // Gets an instance of the NotificationManager service
                                     myGoalNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                                     // Builds the notification and issues it.
                                     myGoalNotifyMgr.cancel(position);
+                                    // Gets an instance of the NotificationManager service
+
                                     System.out.println("File Deleted :" + image.getPath());
                                 } else {
                                     daOdb.deleteImage(image);
@@ -383,6 +480,7 @@ public class MainActivity extends AppCompatActivity {
                                     System.out.println("File Not Deleted :" + image.getPath());
                                 }
                             }
+
                             swipelist.invalidateViews();
                             dialog.cancel();
                             break;
@@ -458,7 +556,7 @@ public class MainActivity extends AppCompatActivity {
         for (MyImage mi : daOdb.getImages()) {
             images.add(mi);
 
-            }
+        }
     }
 
     @Override
@@ -471,7 +569,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent1 = new Intent(MainActivity.this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60 * 1000, pendingIntent);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60*1000, pendingIntent);
 
         super.onResume();
     }
@@ -501,7 +599,7 @@ public class MainActivity extends AppCompatActivity {
                 yearG = Integer.toString(year);
                 Log.d("Setting Date: ", ".....");
                 dateString=String.valueOf(dayG)+"-"+String.valueOf(monthG)+"-"+String.valueOf(yearG);
-               // Toast.makeText(getBaseContext(), "Your reminder is set to "  + day + "-" + (month + 1) + "-" + year + ".", Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getBaseContext(), "Your reminder is set to "  + day + "-" + (month + 1) + "-" + year + ".", Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(getBaseContext(), "Please choose date after " + curDay + "-" + curMonth + "-" + curYear, Toast.LENGTH_SHORT).show();
             }
@@ -599,7 +697,7 @@ public class MainActivity extends AppCompatActivity {
         int MEDIA_TYPE_IMAGE = 1;
         if (type == MEDIA_TYPE_IMAGE){
             //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-             String fname= "IMG_"+ timeStamp + ".jpg";
+            String fname= "IMG_"+ timeStamp + ".jpg";
             mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
         } else {
             return null;
@@ -732,6 +830,7 @@ public class MainActivity extends AppCompatActivity {
                                 image.setDatetime(System.currentTimeMillis());
                                 image.setPath(picturePath);
                                 image.setName(null);
+                                image.setPriority("OFF");
                                 images.add(image);
                                 daOdb.addImage(image);
                                 //swipelist.invalidateViews();
@@ -762,6 +861,7 @@ public class MainActivity extends AppCompatActivity {
                             image.setDatetime(System.currentTimeMillis());
                             image.setPath(picturePath);
                             image.setName(null);
+                            image.setPriority("OFF");
                             images.add(image);
                             daOdb.addImage(image);
                             adapter.notifyDataSetChanged();
@@ -793,6 +893,7 @@ public class MainActivity extends AppCompatActivity {
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(picturePath);
                         image.setName(null);
+                        image.setPriority("OFF");
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();
@@ -805,6 +906,7 @@ public class MainActivity extends AppCompatActivity {
                         image.setDatetime(System.currentTimeMillis());
                         image.setPath(fileUri.getPath());
                         image.setName(null);
+                        image.setPriority("OFF");
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();

@@ -38,6 +38,7 @@ public class DAOdb {
         cv.put(DBhelper.COLUMN_DESCRIPTION, image.getDescription());
         cv.put(DBhelper.COLUMN_NAME,image.getName());
         cv.put(DBhelper.COLUMN_DATETIME, System.currentTimeMillis());
+        cv.put(DBhelper.COLUMN_PRIORITY, image.getPriority());
         return database.insert(DBhelper.TABLE_NAME, null, cv);
     }
 
@@ -92,6 +93,7 @@ public class DAOdb {
                 cursor.getColumnIndex(DBhelper.COLUMN_DESCRIPTION)));
         image.setName(
                 cursor.getString(cursor.getColumnIndex(DBhelper.COLUMN_NAME)));
+        image.setPriority(cursor.getString(cursor.getColumnIndex(DBhelper.COLUMN_PRIORITY)));
         return image;
     }
 }

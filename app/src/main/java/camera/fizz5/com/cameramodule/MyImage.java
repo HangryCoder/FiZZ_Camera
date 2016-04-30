@@ -9,16 +9,18 @@ import java.util.Date;
 
 public class MyImage {
     private String title, description, path,id,name;
+    private String priority;
     public String timeStamp = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
     private long datetimeLong;
     private SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy hh:mm");
     public MyImage(String title, String description,String name, String path,
-                   long datetimeLong) {
+                  String priority, long datetimeLong) {
         this.title = title;
         this.description = description;
         this.name=name;
         this.path = path;
         this.datetimeLong = datetimeLong;
+        this.priority=priority;
         this.id = df.format(getDatetime().getTime());
     }
     public MyImage() {
@@ -28,6 +30,9 @@ public class MyImage {
      *
      * @return Value of title.
      */
+    public  String getPriority() {
+        return priority;
+    }
     public String getTitle() { return title; }
 
     public String getName() { return name; }
@@ -63,11 +68,10 @@ public class MyImage {
      * @return Value of description.
      */
     public String getDescription() { return description; }
-    /**
-     * Sets new title.
-     *
-     * @param title New value of title.
-     */
+
+    public void setPriority(String priority){
+        this.priority=priority;
+    }
     public void setTitle(String title) { this.title = title; }
 
     public void setName( String name ) { this.name = name; }
@@ -102,11 +106,11 @@ public class MyImage {
     public String toString() {
         if (name == null /*|| name=="IMG_"+ timeStamp + ".jpg"*/ ) {
             return "Name: IMG_" + timeStamp + ".jpg\n" + df.format(getDatetime().getTime()) +
-                    "\nReminder: " + description;
+                    "\nReminder: " + description + "\nPriority: "+priority ;
         }
         else{
             return  "Name: " + name + "\n" + df.format(getDatetime().getTime()) +
-                    "\nReminder: " + description ;
+                    "\nReminder: " + description+ "\nPriority: "+priority ;
         }
     }
 

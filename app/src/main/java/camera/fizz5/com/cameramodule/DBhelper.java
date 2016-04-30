@@ -16,6 +16,7 @@ public class DBhelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME = "image";
     public static final String COLUMN_PATH = "path";
     public static final String COLUMN_TITLE = "title";
+    public static final String COLUMN_PRIORITY = "priority";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_DATETIME = "datetime";
     public static final String DATE = "rem_date";
@@ -29,6 +30,7 @@ public class DBhelper extends SQLiteOpenHelper {
             COLUMN_PATH + TEXT_TYPE + COMMA_SEP +
             COLUMN_TITLE + TEXT_TYPE + COMMA_SEP +
             COLUMN_DESCRIPTION + TEXT_TYPE + COMMA_SEP +
+            COLUMN_PRIORITY + TEXT_TYPE + COMMA_SEP +
             COLUMN_NAME + TEXT_TYPE + COMMA_SEP +
             COLUMN_DATETIME + NUMERIC_TYPE + COMMA_SEP +
             PRIMARY_KEY +
