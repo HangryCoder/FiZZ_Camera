@@ -1,5 +1,6 @@
 package camera.fizz5.com.cameramodule;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -7,6 +8,7 @@ import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,8 +18,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -186,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
             public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
                 // ApplicationInfo item = mAppList.get(position);
                 final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+                String[] DummyTitle = image.getTitle().split("/");
+                final String nameTitle= DummyTitle[6];
                 switch (index) {
                     case 0:
                         // open
@@ -245,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
                                 switch (which) {
                                     case DialogInterface.BUTTON_POSITIVE:
                                         //Yes button clicked
-                                        Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                                        Toast.makeText(getApplicationContext(), nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
                                         Log.d("Delete Image: ", "Deleting.....");
                                         adapter.remove(adapter.getItem((int) position));
                                         swipelist.invalidateViews();
@@ -283,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
                     case 2:
                         if(image.getPriority()=="OFF"){
                             database = dbHelper.getWritableDatabase();
+
                             ContentValues cv = new ContentValues();
                             cv.put(DBhelper.COLUMN_PRIORITY, "ON");
                             Log.d("Updating Priority: ", ".....");
@@ -292,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
                             database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                             Log.d("Updating Priority: ", ".....");
                         image.setPriority("ON");
-                        Toast.makeText(getApplicationContext(), image + " " + " is marked Important.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), nameTitle + " " + " is marked Important.", Toast.LENGTH_SHORT).show();
                             swipelist.invalidateViews();
                         }
                         else{
@@ -301,12 +308,12 @@ public class MainActivity extends AppCompatActivity {
                             cv.put(DBhelper.COLUMN_PRIORITY, "OFF");
                             Log.d("Updating Priority: ", ".....");
                             String whereClause =
-                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
-                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                                      DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{ String.valueOf(image.getDatetimeLong())};
                             database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                             Log.d("Updating Priority: ", ".....");
                             image.setPriority("OFF");
-                            Toast.makeText(getApplicationContext(), image + " " + " is marked UnImportant.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), nameTitle + " " + " is marked UnImportant.", Toast.LENGTH_SHORT).show();
                             swipelist.invalidateViews();
                         }
                         break;
@@ -326,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                 final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
 
                 AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-                //alert.setTitle("Edit"); //Set Alert dialog title here
+                //Renaming the image
                 alert.setMessage("Description"); //Message here
 
                 // Set an EditText view to get user input
@@ -409,7 +416,9 @@ public class MainActivity extends AppCompatActivity {
                     switch (which) {
                         case DialogInterface.BUTTON_POSITIVE:
                             //Yes button clicked
-                            Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                            String[] DummyTitle = image.getTitle().split("/");
+                            String nameTitle= DummyTitle[6];
+                            Toast.makeText(getApplicationContext(), nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
                             Log.d("Delete Image: ", "Deleting.....");
                             adapter.remove(adapter.getItem((int) position));
                             swipelist.invalidateViews();
@@ -457,31 +466,25 @@ public class MainActivity extends AppCompatActivity {
                     switch (which) {
                         case DialogInterface.BUTTON_POSITIVE:
                             //Yes button clicked
-                            Toast.makeText(getApplicationContext(), image + " " + " is deleted.", Toast.LENGTH_LONG).show();
-                            Log.d("Delete Image: ", "Deleting.....");
-                            adapter.remove(adapter.getItem((int) position));
+                            String[] DummyTitle = image.getTitle().split("/");
+                            String nameTitle= DummyTitle[6];
+                            Toast.makeText(getApplicationContext(), "Notification for " + nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                            database = dbHelper.getWritableDatabase();
+                            ContentValues cv = new ContentValues();
+                            cv.put(DBhelper.COLUMN_DESCRIPTION, "");
+                            Log.d("Updating Date: ", ".....");
+                            String whereClause =
+                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                            database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                            Log.d("Updating Date: ", ".....");
+                            image.setDescription("");
                             swipelist.invalidateViews();
-                            File fdelete = new File(image.getTitle());
-                            if (fdelete.exists())
-
-                            {
-                                if (fdelete.delete()) {
-                                    daOdb.deleteImage(image);
-                                    daOdb.getImages();
                                     myGoalNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                                     // Builds the notification and issues it.
-                                    myGoalNotifyMgr.cancel(position);
+                                    myGoalNotifyMgr.cancel(position+1);
                                     // Gets an instance of the NotificationManager service
 
-                                    System.out.println("File Deleted :" + image.getPath());
-                                } else {
-                                    daOdb.deleteImage(image);
-                                    daOdb.getImages();
-                                    System.out.println("File Not Deleted :" + image.getPath());
-                                }
-                            }
-
-                            swipelist.invalidateViews();
                             dialog.cancel();
                             break;
 
@@ -748,7 +751,7 @@ public class MainActivity extends AppCompatActivity {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String fname = "IMG_"+ timeStamp + ".jpg";
         File file = new File (dst, fname);
-        if (file.exists ())
+        if (file.exists())
             file.delete ();
         try {
             in = new FileInputStream(src);
@@ -784,6 +787,126 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @SuppressLint("NewApi")
+    public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+
+                // TODO handle non-primary volumes
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+
+            // Return the remote address
+            if (isGooglePhotosUri(uri))
+                return uri.getLastPathSegment();
+
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    public static String getDataColumn(Context context, Uri uri, String selection,
+                                       String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is Google Photos.
+     */
+    public static boolean isGooglePhotosUri(Uri uri) {
+        return "com.google.android.apps.photos.content".equals(uri.getAuthority());
+    }
+
+
     @Override protected void onActivityResult(int requestCode, int resultCode,
                                               Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -799,9 +922,9 @@ public class MainActivity extends AppCompatActivity {
 
                     //Selected Image Uri
                     Uri selectedImageUri = data.getData();
-                    selectedImagePath = getPath(selectedImageUri);
+                    selectedImagePath = getPath(MainActivity.this,selectedImageUri);
                     Toast.makeText(getApplication(),selectedImagePath,Toast.LENGTH_SHORT).show();
-                    File mediaStored = new File(getPath(selectedImageUri));//Source file
+                    File mediaStored = new File(selectedImagePath);//Source file
                     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "FiZZ");
                     mediaFile1 = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
                     String imageName=String.valueOf(mediaFile1);
@@ -812,7 +935,6 @@ public class MainActivity extends AppCompatActivity {
                         if (!mediaStorageDir.mkdirs()) {
                             Log.d("FiZZ", "failed to create directory");
                             Toast.makeText(getBaseContext(),"File directory creation failed",Toast.LENGTH_SHORT).show();
-                            //return null;
                         }else{
                             try {
                                 copyFile(mediaStored, mediaStorageDir);
@@ -833,7 +955,6 @@ public class MainActivity extends AppCompatActivity {
                                 image.setPriority("OFF");
                                 images.add(image);
                                 daOdb.addImage(image);
-                                //swipelist.invalidateViews();
                                 adapter.notifyDataSetChanged();
                             }catch (IOException e){
                                 e.printStackTrace();
@@ -865,7 +986,6 @@ public class MainActivity extends AppCompatActivity {
                             images.add(image);
                             daOdb.addImage(image);
                             adapter.notifyDataSetChanged();
-                            //swipelist.invalidateViews();
                         }catch (IOException e){
                             e.printStackTrace();
                         }

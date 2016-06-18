@@ -10,7 +10,7 @@ import java.util.Date;
 public class MyImage {
     private String title, description, path,id,name;
     private String priority;
-    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy").format(new Date());
+    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy ").format(new Date());
     private long datetimeLong;
     private SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy hh:mm");
     public MyImage(String title, String description,String name, String path,
