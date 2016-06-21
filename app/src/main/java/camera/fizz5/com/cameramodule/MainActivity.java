@@ -1,6 +1,7 @@
 package camera.fizz5.com.cameramodule;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -105,9 +106,6 @@ public class MainActivity extends AppCompatActivity {
     public int NotiId=0;
     BroadcastReceiver receiver;
     public int delGoalId,delGoalId1;
-    Button EditButton;
-    TextView textEdit;
-    EditText DescEdit;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -907,6 +905,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override protected void onActivityResult(int requestCode, int resultCode,
                                               Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -918,13 +917,11 @@ public class MainActivity extends AppCompatActivity {
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
                     String fname = "IMG_"+ timeStamp + ".jpg";
                     File mediaFile1;
-
-
                     //Selected Image Uri
                     Uri selectedImageUri = data.getData();
                     selectedImagePath = getPath(MainActivity.this,selectedImageUri);
                     Toast.makeText(getApplication(),selectedImagePath,Toast.LENGTH_SHORT).show();
-                    File mediaStored = new File(selectedImagePath);//Source file
+                    File mediaStored = new File(getPath(MainActivity.this,selectedImageUri));//Source file
                     File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "FiZZ");
                     mediaFile1 = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
                     String imageName=String.valueOf(mediaFile1);
@@ -935,6 +932,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!mediaStorageDir.mkdirs()) {
                             Log.d("FiZZ", "failed to create directory");
                             Toast.makeText(getBaseContext(),"File directory creation failed",Toast.LENGTH_SHORT).show();
+                            //return null;
                         }else{
                             try {
                                 copyFile(mediaStored, mediaStorageDir);
@@ -955,6 +953,7 @@ public class MainActivity extends AppCompatActivity {
                                 image.setPriority("OFF");
                                 images.add(image);
                                 daOdb.addImage(image);
+                                //swipelist.invalidateViews();
                                 adapter.notifyDataSetChanged();
                             }catch (IOException e){
                                 e.printStackTrace();
@@ -964,28 +963,90 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         try {
                             //moveFile(mediaStored,mediaStorageDir);
-                            Toast.makeText(getApplication(),"Copying",Toast.LENGTH_SHORT).show();
-                            copyFile(mediaStored, mediaStorageDir);
-                            String[] filePathColumn = {MediaStore.Images.Media.DATA};
-                            String picturePath = null;
-                            Cursor cursor = getContentResolver()
-                                    .query(selectedImageUri, filePathColumn, null, null,
-                                            null);
-                            if(cursor.moveToFirst()) {
-                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                                picturePath = cursor.getString(columnIndex);
+                            try{
+                                copyFile(mediaStored, mediaStorageDir);
+                                String wholeID = DocumentsContract.getDocumentId(selectedImageUri);
+
+                                // Split at colon, use second item in the array
+                                String id = wholeID.split(":")[1];
+
+                                String[] column = { MediaStore.Images.Media.DATA };
+
+                                // where id is equal to
+                                String sel = MediaStore.Images.Media._ID + "=?";
+
+                                Cursor cursor = getContentResolver().query(
+                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column, sel,
+                                        new String[] { id }, null);
+
+                                String filePath = "";
+
+                                int columnIndex = cursor.getColumnIndex(column[0]);
+
+                                if (cursor.moveToFirst()) {
+                                    filePath = cursor.getString(columnIndex);
+                                }
+
+                                cursor.close();
+                                MyImage image = new MyImage();
+                                image.setTitle(imageName);
+                                image.setDescription(" ");
+                                image.setDatetime(System.currentTimeMillis());
+                                image.setPath(filePath);
+                                image.setName(null);
+                                image.setPriority("OFF");
+                                images.add(image);
+                                daOdb.addImage(image);
+                                adapter.notifyDataSetChanged();
+                            }catch(IllegalArgumentException ie) {
+                                Toast.makeText(getApplication(), "Copying", Toast.LENGTH_SHORT).show();
+                                copyFile(mediaStored, mediaStorageDir);
+                                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                                String picturePath = null;
+                                Cursor cursor = getContentResolver()
+                                        .query(selectedImageUri, filePathColumn, null, null,
+                                                null);
+                                if (cursor.moveToFirst()) {
+                                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                                    picturePath = cursor.getString(columnIndex);
+                                }
+                                cursor.close();
+                                MyImage image = new MyImage();
+                                image.setTitle(imageName);
+                                image.setDescription(" ");
+                                image.setDatetime(System.currentTimeMillis());
+                                image.setPath(picturePath);
+                                image.setName(null);
+                                image.setPriority("OFF");
+                                images.add(image);
+                                daOdb.addImage(image);
+                                adapter.notifyDataSetChanged();
                             }
-                            cursor.close();
-                            MyImage image = new MyImage();
-                            image.setTitle(imageName);
-                            image.setDescription(" ");
-                            image.setDatetime(System.currentTimeMillis());
-                            image.setPath(picturePath);
-                            image.setName(null);
-                            image.setPriority("OFF");
-                            images.add(image);
-                            daOdb.addImage(image);
-                            adapter.notifyDataSetChanged();
+                            catch(ArrayIndexOutOfBoundsException ae){
+                                Toast.makeText(getApplication(), "Copying", Toast.LENGTH_SHORT).show();
+                                copyFile(mediaStored, mediaStorageDir);
+                                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                                String picturePath = null;
+                                Cursor cursor = getContentResolver()
+                                        .query(selectedImageUri, filePathColumn, null, null,
+                                                null);
+                                if (cursor.moveToFirst()) {
+                                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                                    picturePath = cursor.getString(columnIndex);
+                                }
+                                cursor.close();
+                                MyImage image = new MyImage();
+                                image.setTitle(imageName);
+                                image.setDescription(" ");
+                                image.setDatetime(System.currentTimeMillis());
+                                image.setPath(picturePath);
+                                image.setName(null);
+                                image.setPriority("OFF");
+                                images.add(image);
+                                daOdb.addImage(image);
+                                adapter.notifyDataSetChanged();
+                            }
+                            //swipelist.invalidateViews();
                         }catch (IOException e){
                             e.printStackTrace();
                         }
