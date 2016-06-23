@@ -8,21 +8,12 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class MyImage {
-    private String title, description, path,id,name;
+    private String title, description, path,name;
     private String priority;
-    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy ").format(new Date());
+    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy hh:mm").format(new Date());
     private long datetimeLong;
     private SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy hh:mm");
-    public MyImage(String title, String description,String name, String path,
-                  String priority, long datetimeLong) {
-        this.title = title;
-        this.description = description;
-        this.name=name;
-        this.path = path;
-        this.datetimeLong = datetimeLong;
-        this.priority=priority;
-        this.id = df.format(getDatetime().getTime());
-    }
+
     public MyImage() {
     }
     /**
@@ -59,9 +50,6 @@ public class MyImage {
      *
      * @param datetime New value of datetime.
      */
-    public void setDatetime(Calendar datetime) {
-        this.datetimeLong = datetime.getTimeInMillis();
-    }
     /**
      * Gets description.
      *
@@ -104,7 +92,7 @@ public class MyImage {
 
     @Override
     public String toString() {
-        if (name == null /*|| name=="IMG_"+ timeStamp + ".jpg"*/ ) {
+        if (name == null) {
             return "Name: IMG_" + timeStamp + ".jpg\n" + df.format(getDatetime().getTime()) +
                     "\nReminder: " + description + "\nPriority: "+priority ;
         }

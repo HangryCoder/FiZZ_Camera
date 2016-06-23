@@ -8,7 +8,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -24,7 +23,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
@@ -36,7 +34,6 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -52,7 +49,6 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -61,29 +57,19 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<MyImage> images;
     public ArrayList<String> title;
     private ImageAdapter adapter;
-    private AlarmReceiver Areceiver;
-    private ListView listView;
-    private ListView list;
     private Uri mCapturedImageURI;
     private static final int RESULT_LOAD_IMAGE = 1;
     private static final int REQUEST_IMAGE_CAPTURE = 2;
     private DAOdb daOdb;
-    private String[] FilePathStrings;
-    private String[] FileNameStrings;
-    private File[] listFile;
     // for storing
     private static final int SELECT_PICTURE = 1;
     private Uri fileUri;
-    private String file_image = "myimage", id;
+    private String file_image = "myimage";
     private String string,selectedImagePath;
     File imageFile;
-    private Context mContext;
-    public String timeStamp = new SimpleDateFormat("dd-MM-yyyy hh:mm").format(new Date());
-    public String fname= "IMG_"+ timeStamp + ".jpg";
     static final int DATE_DIALOG_ID = 0;
     private int currentYear, currentMonth, currentDay;
     public String dayG,monthG,yearG;
-    TextView describe;
     AlertDialog alert;
     AlertDialog.Builder build;
     Button newDate;
@@ -93,18 +79,10 @@ public class MainActivity extends AppCompatActivity {
     public File mediaFile;
     NotificationManager manager;
     private NotificationManager myGoalNotifyMgr;
-    NotificationCompat.Builder gBuilder;
     ArrayList<String> TitleRem=new ArrayList<String>();
     ArrayList<String> dateRem=new ArrayList<String>();
     ArrayList<Integer> countRem=new ArrayList<Integer>();
     ArrayList<Integer> IdRem=new ArrayList<Integer>();
-    ArrayList<Integer> mon = new ArrayList<Integer>(Arrays.asList(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31));
-    ArrayList<String> monStr = new ArrayList<String>(Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"));
-    private ArrayList<String> daysLeftGoal = new ArrayList<String>();
-    PendingIntent resultPendingIntent,deletePendingIntent;
-    private DatePicker picker;
-    public int NotiId=0;
-    BroadcastReceiver receiver;
     public int delGoalId,delGoalId1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,8 +93,6 @@ public class MainActivity extends AppCompatActivity {
         countRem.clear();
         IdRem.clear();
         dateRem.clear();
-        //picker = (DatePicker) findViewById(R.id.scheduleTimePicker);
-        //describe = (TextView) findViewById(R.id.text_view_description);
         images = new ArrayList();
         dbHelper = new DBhelper(this);
         manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -127,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         if (!imageFile.exists()) {
             if (!imageFile.mkdirs()) {
                 Log.d("FiZZ", "failed to create directory");
-                Toast.makeText(getBaseContext(), "File directory creation failed", Toast.LENGTH_SHORT).show();
                 //return null;
             } else {
                 // Create a new folder if no folder named SDImageTutorial exist
@@ -140,12 +115,10 @@ public class MainActivity extends AppCompatActivity {
         // Pass String arrays to ListAdapter Class
         adapter = new ImageAdapter(this, images);
         // Set the ListAdapter to the ListView
-        //list.setAdapter(adapter);
 
         swipelist.setAdapter(adapter);
         addItemClickListener(swipelist);
         initDB();
-        //NotifyFunc(images);
 
         // step 1. create a MenuCreator
         SwipeMenuCreator creator = new SwipeMenuCreator() {
@@ -186,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
         swipelist.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
-                // ApplicationInfo item = mAppList.get(position);
                 final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
                 String[] DummyTitle = image.getTitle().split("/");
                 final String nameTitle= DummyTitle[6];
@@ -204,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
                         currentYear = c.get(Calendar.YEAR);
                         currentMonth = c.get(Calendar.MONTH);
                         currentDay = c.get(Calendar.DAY_OF_MONTH);
-                        //picker = (DatePicker) findViewById(R.id.scheduleTimePicker);
                         newDate = (Button) DateView.findViewById(R.id.buttonCalCam); //Button which opens the calender
                         newDate.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -222,9 +193,8 @@ public class MainActivity extends AppCompatActivity {
                                 ContentValues cv = new ContentValues();
                                 cv.put(DBhelper.COLUMN_DESCRIPTION, dateString);
                                 Log.d("Updating Date: ", ".....");
-                                String whereClause =
-                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
-                                String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                                String whereClause = DBhelper.COLUMN_DATETIME + "=?";
+                                String[] whereArgs = new String[]{ String.valueOf(image.getDatetimeLong())};
                                 database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                                 Log.d("Updating Date: ", ".....");
                                 image.setDescription(dateString);
@@ -280,20 +250,18 @@ public class MainActivity extends AppCompatActivity {
                         };
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setMessage("Do You Wish To Delete?").setPositiveButton("Yes", dialogClickListener)
+                        builder.setMessage("Do You Wish To Delete " +nameTitle+" ?").setPositiveButton("Yes", dialogClickListener)
                                 .setNegativeButton("No", dialogClickListener).show();
 
                         break;
                     case 2:
                         if(image.getPriority()=="OFF"){
                             database = dbHelper.getWritableDatabase();
-
                             ContentValues cv = new ContentValues();
                             cv.put(DBhelper.COLUMN_PRIORITY, "ON");
                             Log.d("Updating Priority: ", ".....");
-                            String whereClause =
-                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
-                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                            String whereClause = DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{String.valueOf(image.getDatetimeLong())};
                             database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                             Log.d("Updating Priority: ", ".....");
                         image.setPriority("ON");
@@ -329,57 +297,101 @@ public class MainActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
                                            final int arg2, final long position) {
                 final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+                String[] DummyTitle = image.getTitle().split("/");
+                final String nameTitle= DummyTitle[6];
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-                //Renaming the image
-                alert.setMessage("Description"); //Message here
+                final CharSequence[] items = {"Delete Reminder", "Rename"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Make your selection");
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                        switch(item){
+                            case 0:
+                                if(!image.getDescription().equals("")) {
+                                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            switch (which) {
+                                                case DialogInterface.BUTTON_POSITIVE:
+                                                    //Yes button clicked
 
-                // Set an EditText view to get user input
-                final EditText input = new EditText(MainActivity.this);
-                alert.setView(input);
+                                                    Toast.makeText(getApplicationContext(), "Notification for " + nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
+                                                    database = dbHelper.getWritableDatabase();
+                                                    ContentValues cv = new ContentValues();
+                                                    cv.put(DBhelper.COLUMN_DESCRIPTION, "");
+                                                    Log.d("Updating Date: ", ".....");
+                                                    String whereClause = DBhelper.COLUMN_DATETIME + "=?";
+                                                    String[] whereArgs = new String[]{String.valueOf(image.getDatetimeLong())};
+                                                    database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                                                    Log.d("Updating Date: ", ".....");
+                                                    image.setDescription("");
+                                                    swipelist.invalidateViews();
+                                                    dialog.cancel();
+                                                    break;
 
-                alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        //You will get as string input data in this variable.
-                        // here we convert the input to a string and show in a toast.
-                        String srt = input.getEditableText().toString();
-                        database = dbHelper.getWritableDatabase();
-                        ContentValues cv = new ContentValues();
-                        cv.put(DBhelper.COLUMN_NAME, srt);
-                        Log.d("Updating Date: ", ".....");
-                        String whereClause =  /*DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
-                        String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
-                        database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
-                        Log.d("Updating Date: ", ".....");
-                        image.setName(srt);
-                        swipelist.invalidateViews();
-                        Toast.makeText(MainActivity.this,srt,Toast.LENGTH_LONG).show();
-                    } // End of onClick(DialogInterface dialog, int whichButton)
-                }); //End of alert.setPositiveButton
-                alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        // Canceled.
-                        dialog.cancel();
+                                                case DialogInterface.BUTTON_NEGATIVE:
+                                                    //No button clicked
+                                                    dialog.cancel();
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                    builder.setMessage("Do You Wish To Delete " + nameTitle + " ?").setPositiveButton("Yes", dialogClickListener)
+                                            .setNegativeButton("No", dialogClickListener).show();
+                                }else{
+
+                                    Toast.makeText(getApplicationContext(), "Please Set A Reminder.", Toast.LENGTH_LONG).show();
+
+                                }
+                                break;
+                            case 1:
+                                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                                //Renaming the image
+                                alert.setMessage("Rename"); //Message here
+                                final EditText input = new EditText(MainActivity.this);
+                                alert.setView(input);
+
+                                alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        //You will get as string input data in this variable.
+                                        // here we convert the input to a string and show in a toast.
+                                        String srt = input.getEditableText().toString();
+                                        database = dbHelper.getWritableDatabase();
+                                        ContentValues cv = new ContentValues();
+                                        cv.put(DBhelper.COLUMN_NAME, srt);
+                                        Log.d("Updating Name: ", ".....");
+                                        String whereClause = DBhelper.COLUMN_DATETIME + "=?";
+                                        String[] whereArgs = new String[]{ String.valueOf(image.getDatetimeLong())};
+                                        database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
+                                        Log.d("Updating Name: ", ".....");
+                                        image.setName(srt);
+                                        swipelist.invalidateViews();
+                                        Toast.makeText(MainActivity.this,srt,Toast.LENGTH_LONG).show();
+                                    } // End of onClick(DialogInterface dialog, int whichButton)
+                                }); //End of alert.setPositiveButton
+                                alert.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // Canceled.
+                                        dialog.cancel();
+                                    }
+                                }); //End of alert.setNegativeButton
+                                alert.show();
+                                break;
+                        }
                     }
-                }); //End of alert.setNegativeButton
-                AlertDialog alertDialog = alert.create();
-                alertDialog.show();
-               /* alert = build.create();
-                alert.show();*/
+                });
+                builder.show();
                 return true;
             }
         });
         Log.d("Intent: ", " " + getIntent());
-        //Intent i;
-        //i.putExtra("Swipe",String.valueOf(findViewById(R.id.main_list_view)));
 
         Intent in=getIntent();
 
-        // delGoalId = getIntent().getIntExtra("ID", 0);
-
         if(in != null){
             delGoalId = in.getIntExtra("ID",0);
-            //catNotify = String.valueOf(getIntent().getExtras().getInt("Category"));
             if(delGoalId >0) {
 
                 onReceive(delGoalId-1);
@@ -389,10 +401,8 @@ public class MainActivity extends AppCompatActivity {
             onReceive(delGoalId-1);
         }
         Intent in1=getIntent();
-        // delGoalId = getIntent().getIntExtra("ID", 0);
         if(in1 != null){
             delGoalId1 = in1.getIntExtra("DEL",0);
-            //catNotify = String.valueOf(getIntent().getExtras().getInt("Category"));
             if(delGoalId1 >0) {
                 onRec(delGoalId1-1);
             }
@@ -403,8 +413,9 @@ public class MainActivity extends AppCompatActivity {
     }
     public void onRec(final int position) {
         final SwipeMenuListView swipelist = (SwipeMenuListView) findViewById(R.id.main_list_view);
-        Toast.makeText(getApplicationContext(), "onReceive", Toast.LENGTH_LONG).show();
         final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+        String[] DummyTitle = image.getTitle().split("/");
+        final String nameTitle= DummyTitle[6];
         String action = getIntent().getAction();
         if ("Del".equals(action)) {// to execute delete option
             // delete
@@ -414,8 +425,7 @@ public class MainActivity extends AppCompatActivity {
                     switch (which) {
                         case DialogInterface.BUTTON_POSITIVE:
                             //Yes button clicked
-                            String[] DummyTitle = image.getTitle().split("/");
-                            String nameTitle= DummyTitle[6];
+
                             Toast.makeText(getApplicationContext(), nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
                             Log.d("Delete Image: ", "Deleting.....");
                             adapter.remove(adapter.getItem((int) position));
@@ -425,6 +435,9 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 if (fdelete.delete()) {
                                     daOdb.deleteImage(image);
+                                    myGoalNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                    // Builds the notification and issues it.
+                                    myGoalNotifyMgr.cancel(position + 1);
                                     daOdb.getImages();
                                     System.out.println("File Deleted :" + image.getPath());
                                 } else {
@@ -444,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("Do You Wish To Delete?").setPositiveButton("Yes", dialogClickListener)
+            builder.setMessage("Do You Wish To Delete "+nameTitle+" ?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
         }
     }
@@ -452,28 +465,26 @@ public class MainActivity extends AppCompatActivity {
 
     public void onReceive(final int position) {
         final SwipeMenuListView swipelist = (SwipeMenuListView) findViewById(R.id.main_list_view);
-        Toast.makeText(getApplicationContext(), "onReceive", Toast.LENGTH_LONG).show();
         final MyImage image = (MyImage) swipelist.getItemAtPosition((int) position);
+        String[] DummyTitle = image.getTitle().split("/");
+        final String nameTitle= DummyTitle[6];
         String action = getIntent().getAction();
 
         if ("Delete".equals(action)) {// to execute delete option
-            Toast.makeText(getApplicationContext(), "Delete", Toast.LENGTH_LONG).show();
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     switch (which) {
                         case DialogInterface.BUTTON_POSITIVE:
                             //Yes button clicked
-                            String[] DummyTitle = image.getTitle().split("/");
-                            String nameTitle= DummyTitle[6];
+
                             Toast.makeText(getApplicationContext(), "Notification for " + nameTitle + " " + " is deleted.", Toast.LENGTH_LONG).show();
                             database = dbHelper.getWritableDatabase();
                             ContentValues cv = new ContentValues();
                             cv.put(DBhelper.COLUMN_DESCRIPTION, "");
                             Log.d("Updating Date: ", ".....");
-                            String whereClause =
-                                       /* DBhelper.COLUMN_TITLE + "=? AND " +*/ DBhelper.COLUMN_DATETIME + "=?";
-                            String[] whereArgs = new String[]{/*image.getTitle(),*/ String.valueOf(image.getDatetimeLong())};
+                            String whereClause = DBhelper.COLUMN_DATETIME + "=?";
+                            String[] whereArgs = new String[]{String.valueOf(image.getDatetimeLong())};
                             database.update(DBhelper.TABLE_NAME, cv, whereClause, whereArgs);
                             Log.d("Updating Date: ", ".....");
                             image.setDescription("");
@@ -495,58 +506,10 @@ public class MainActivity extends AppCompatActivity {
             };
 
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-            builder.setMessage("Do You Wish To Delete?").setPositiveButton("Yes", dialogClickListener)
+            builder.setMessage("Do You Wish To Delete "+nameTitle+" ?").setPositiveButton("Yes", dialogClickListener)
                     .setNegativeButton("No", dialogClickListener).show();
-            /*alert = build.create();
-            alert.show();*/
         }
     }
-
-
-
-    // calculates days from months
-    int calMonthDay(int m,int y){//calMonthDay(month,year)
-        int x=0,c;
-        for(c = 1; c < m; c++) {// Jan to less than the month 'm' as 'm' we are not taking the the whole days of that month
-            if(c == 2) {//if Feb
-                if(y%4 == 0)//checks if year is leap or not
-                    x += 29;
-                else
-                    x += 28;
-            }
-            else
-                x += mon.get(c-1);
-        }
-        return(x);
-    }
-
-    //calculates no. of months from current month & year to goal month & year
-    int calDateMonth(int mC,int yC,int mG,int yG){//(current-month, current-year, goal-month, goal-year)
-        int x = 0,i,countM=0;
-        if(yC<=yG){
-            for(i = yC; i < yG; i++)
-                countM += 12;
-        }
-
-        countM -= mC;
-        countM += mG;
-        return (countM);
-    }
-
-    //calculates no. of weeks from current month & year to goal month & year
-    int calDateWeek(int mC,int yC,int mG,int yG){
-        int x = 0,i,countW=0;
-        if(yC<=yG){
-            for(i = yC; i < yG; i++)
-                countW+=52;
-        }
-
-        countW -= mC;
-        countW += mG;
-        countW *= 4;
-        return (countW);
-    }
-
 
     /**
      * initialize database
@@ -570,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent1 = new Intent(MainActivity.this, AlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), 60*1000, pendingIntent);
+        am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
         super.onResume();
     }
@@ -578,7 +541,6 @@ public class MainActivity extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch(id){
             case DATE_DIALOG_ID:
-                //return new DatePickerDialog(this, reservationDate, currentYear, currentMonth, currentDay);
                 DatePickerDialog da=new DatePickerDialog(this, reservationDate, currentYear, currentMonth, currentDay);
                 da.getDatePicker().setMinDate(System.currentTimeMillis()-1000);
                 return da;
@@ -591,7 +553,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDateSet(DatePicker view, int year, int month, int day){
             final Calendar c = Calendar.getInstance();
-            Date convertedDate = new Date();
             int curYear = c.get(Calendar.YEAR), curMonth = c.get(Calendar.MONTH)+1, curDay = c.get(Calendar.DAY_OF_MONTH);
             //Picks the selected date, month & year & displays on button
             if((year>=curYear)||(year==curYear && month+1>=curMonth)||(year==curYear && month+1==curMonth && day>=curDay)) {
@@ -600,7 +561,6 @@ public class MainActivity extends AppCompatActivity {
                 yearG = Integer.toString(year);
                 Log.d("Setting Date: ", ".....");
                 dateString=String.valueOf(dayG)+"-"+String.valueOf(monthG)+"-"+String.valueOf(yearG);
-                // Toast.makeText(getBaseContext(), "Your reminder is set to "  + day + "-" + (month + 1) + "-" + year + ".", Toast.LENGTH_SHORT).show();
             }else{
                 Toast.makeText(getBaseContext(), "Please choose date after " + curDay + "-" + curMonth + "-" + curYear, Toast.LENGTH_SHORT).show();
             }
@@ -661,7 +621,6 @@ public class MainActivity extends AppCompatActivity {
         // TODO Auto-generated method stub
 
         if(isExternalStorageWritable()) {
-            //Toast.makeText(getBaseContext(), "value: "+ Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE)), Toast.LENGTH_LONG).show();
             return Uri.fromFile(getOutputMediaFile(MEDIA_TYPE_IMAGE));
         }
         else
@@ -697,7 +656,6 @@ public class MainActivity extends AppCompatActivity {
 
         int MEDIA_TYPE_IMAGE = 1;
         if (type == MEDIA_TYPE_IMAGE){
-            //String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String fname= "IMG_"+ timeStamp + ".jpg";
             mediaFile = new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
         } else {
@@ -768,23 +726,6 @@ public class MainActivity extends AppCompatActivity {
             IOUtils.closeQuietly(in);
         }
     }
-    private void moveFile(File file, File dir) throws IOException {
-        File newFile = new File(dir, file.getName());
-        FileChannel outputChannel = null;
-        FileChannel inputChannel = null;
-        try {
-            outputChannel = new FileOutputStream(newFile).getChannel();
-            inputChannel = new FileInputStream(file).getChannel();
-            inputChannel.transferTo(0, inputChannel.size(), outputChannel);
-            inputChannel.close();
-            file.delete();
-        } finally {
-            if (inputChannel != null) inputChannel.close();
-            if (outputChannel != null) outputChannel.close();
-        }
-
-    }
-
     @SuppressLint("NewApi")
     public static String getPath(final Context context, final Uri uri) {
 
@@ -915,7 +856,6 @@ public class MainActivity extends AppCompatActivity {
                         resultCode == RESULT_OK && null != data) {
                     final Dialog dialog = new Dialog(this);
                     String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                    String fname = "IMG_"+ timeStamp + ".jpg";
                     File mediaFile1;
                     //Selected Image Uri
                     Uri selectedImageUri = data.getData();
@@ -932,37 +872,12 @@ public class MainActivity extends AppCompatActivity {
                         if (!mediaStorageDir.mkdirs()) {
                             Log.d("FiZZ", "failed to create directory");
                             Toast.makeText(getBaseContext(),"File directory creation failed",Toast.LENGTH_SHORT).show();
-                            //return null;
                         }else{
-                            try {
-                                copyFile(mediaStored, mediaStorageDir);
-                                String[] filePathColumn = {MediaStore.Images.Media.DATA};
-                                Cursor cursor = getContentResolver()
-                                        .query(selectedImageUri, filePathColumn, null, null,
-                                                null);
-                                cursor.moveToFirst();
-                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                                String picturePath = cursor.getString(columnIndex);
-                                cursor.close();
-                                MyImage image = new MyImage();
-                                image.setTitle(imageName);
-                                image.setDescription(picturePath);
-                                image.setDatetime(System.currentTimeMillis());
-                                image.setPath(picturePath);
-                                image.setName(null);
-                                image.setPriority("OFF");
-                                images.add(image);
-                                daOdb.addImage(image);
-                                //swipelist.invalidateViews();
-                                adapter.notifyDataSetChanged();
-                            }catch (IOException e){
-                                e.printStackTrace();
-                            }finally {
-                            }
+                           //File creation succesful
+                            Toast.makeText(getBaseContext(),"File directory created",Toast.LENGTH_SHORT).show();
                         }
                     }else{
                         try {
-                            //moveFile(mediaStored,mediaStorageDir);
                             try{
                                 copyFile(mediaStored, mediaStorageDir);
                                 String wholeID = DocumentsContract.getDocumentId(selectedImageUri);
@@ -1046,7 +961,6 @@ public class MainActivity extends AppCompatActivity {
                                 daOdb.addImage(image);
                                 adapter.notifyDataSetChanged();
                             }
-                            //swipelist.invalidateViews();
                         }catch (IOException e){
                             e.printStackTrace();
                         }
@@ -1065,19 +979,6 @@ public class MainActivity extends AppCompatActivity {
 
 
                     if( cursor != null && cursor.moveToFirst() ){
-                        int column_index_data = cursor.getColumnIndexOrThrow(
-                                MediaStore.MediaColumns._ID);
-                        String picturePath = cursor.getString(column_index_data);
-                        MyImage image = new MyImage();
-                        image.setTitle(imageName);
-                        image.setDescription(" ");
-                        image.setDatetime(System.currentTimeMillis());
-                        image.setPath(picturePath);
-                        image.setName(null);
-                        image.setPriority("OFF");
-                        images.add(image);
-                        daOdb.addImage(image);
-                        adapter.notifyDataSetChanged();
                         cursor.close();
                     }
                     else{
@@ -1091,7 +992,6 @@ public class MainActivity extends AppCompatActivity {
                         images.add(image);
                         daOdb.addImage(image);
                         adapter.notifyDataSetChanged();
-                        //swipelist.invalidateViews();
                     }
                 }
         }
